@@ -1,39 +1,44 @@
-name: Merge Test to Main et Infos
+name: Build and Test
 
 on:
-  workflow_dispatch: # Bouton manuel dans l'onglet Actions
+  push:
+    branches: [ "dev" ]
 
 jobs:
-  merge-and-show-info:
+  build-docker:
     runs-on: ubuntu-latest
-    
-    # Donne les permissions nécessaires au bot GitHub pour pousser le code
-    permissions:
-      contents: write
-
     steps:
-      - name: Récupérer le code
+      - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
         with:
-          fetch-depth: 0 # Nécessaire pour avoir accès à toutes les branches
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      
+      - name: build image
+        run: docker build -t automation-server:latest .
 
-      - name: Configurer Git
-        run: |
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "actions@github.com"
+      - name: Run container
+        run: docker run -d -p 3000:3000 --name automation-server automation-server:latest
 
-      - name: Fusionner dev vers main et pousser
-        run: |
-          git checkout main
-          
-          git merge origin/dev --allow-unrelated-histories -m "Auto-merge de dev vers main via GitHub Actions"
-          
-          # 3. On pousse le résultat sur main
-          git push origin main
+      - name: test curl
+        run: curl -v http://localhost:3000/api
 
-      - name: Affichage des infos système (ton script)
-        run: |
-          echo "Automatiquement fusionné depuis dev et poussé sur main !"
-          uname -a
-          whoami
-          env | sort
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: automation-server:latest
+          ports: 
+            - 3000:3000
+
+      
+
+      
+  
