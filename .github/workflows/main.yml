@@ -1,0 +1,41 @@
+name: Merge Test to Main et Infos
+
+on:
+  workflow_dispatch: # Bouton manuel dans l'onglet Actions
+
+jobs:
+  merge-and-show-info:
+    runs-on: ubuntu-latest
+    
+    # Donne les permissions nécessaires au bot GitHub pour pousser le code
+    permissions:
+      contents: write
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Nécessaire pour avoir accès à toutes les branches
+
+      - name: Configurer Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
+      - name: Fusionner test vers main et pousser
+        run: |
+          # 1. On se place sur la branche main
+          git checkout main
+          
+          # 2. On fusionne la branche test dans main
+          git merge origin/test --allow-unrelated-histories -m "Auto-merge de test vers main via GitHub Actions"
+          
+          # 3. On pousse le résultat sur main
+          git push origin main
+
+      - name: Affichage des infos système (ton script)
+        run: |
+          echo "Automatiquement fusionné depuis test et poussé sur main !"
+          uname -a
+          whoami
+          env | sort
