@@ -22,20 +22,18 @@ jobs:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
 
-      - name: Fusionner test vers main et pousser
+      - name: Fusionner dev vers main et pousser
         run: |
-          # 1. On se place sur la branche main
           git checkout main
           
-          # 2. On fusionne la branche test dans main
-          git merge origin/test --allow-unrelated-histories -m "Auto-merge de test vers main via GitHub Actions"
+          git merge origin/dev --allow-unrelated-histories -m "Auto-merge de dev vers main via GitHub Actions"
           
           # 3. On pousse le résultat sur main
           git push origin main
 
       - name: Affichage des infos système (ton script)
         run: |
-          echo "Automatiquement fusionné depuis test et poussé sur main !"
+          echo "Automatiquement fusionné depuis dev et poussé sur main !"
           uname -a
           whoami
           env | sort
